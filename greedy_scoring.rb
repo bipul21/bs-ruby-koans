@@ -35,7 +35,8 @@ def roll(size)
 end
 
 def get_score(dice)
-  ## Get score method
+  ## Generic score method
+  ## Returns counts of non-scoring rolls and total score generated in the roll
   sum = 0
   total_valued_elements = 0
   (1..6).each do |i|
@@ -47,48 +48,69 @@ def get_score(dice)
     end
 
     remaining_elements = dice_val_selected.size % 3
-    if remaining_elements > 0 and (i==1 or i==5)
+    if remaining_elements > 0 && (i==1 || i==5)
       total_valued_elements+=remaining_elements
       sum += remaining_elements * 100   if i == 1
       sum += remaining_elements *  50   if i == 5
     end
   end
-  [5 - total_valued_elements,sum]
+  [dice.size - total_valued_elements,sum]
 end
 
-puts 'Enter number of players : '
-num_players = gets
-num_players = num_players.chomp.to_i
-total_score = Hash.new(0)
 
-while true do
-  (1..num_players).each do |player_id|
-    player_rolls = roll(5)
-    remaining_elements , roll_score = get_score(player_rolls)
-    total_score[player_id] += roll_score
-    puts "\nPlayer #{player_id} rolls: #{player_rolls}"
-    puts "Score in this round: #{roll_score}"
-    puts "Do you want to roll the non-scoring #{remaining_elements} dice? (y/n)"
-    option_selected = gets
+class GreederDiceGame
+  attr_accessor :num_players
+  attr_accessor :total_score
+  attr_accessor :is_final_round
+  SCORE_THRESHOLD = 3000
+  DICE_THROW_SIZE = 5
+  def initialize(num_players)
+    @total_score = Hash.new(0)
+    @num_players = num_players
+    @is_final_round = false
+  end
 
-    if option_selected.chomp =='y'
-      player_rolls = roll(remaining_elements)
-      remaining_elements , roll_score = get_score(player_rolls)
-      total_score[player_id] += roll_score
-      puts "Player #{player_id} rolls: #{player_rolls}"
-      puts "Score in this round: #{roll_score}"
+  def play
+    while true do
+      (1..@num_players).each do |player_id|
+        remaining_elements, roll_score = self.roll_dice_and_process player_id, DICE_THROW_SIZE, total_score
+        puts "Do you want to roll remaining #{remaining_elements} dice? (y/n)"
+        if gets.chomp =='y'
+          remaining_elements, roll_score = self.roll_dice_and_process player_id,remaining_elements,total_score
+        end
+        puts "\n"
+      end
+      self.print_total_score total_score
+      break if @is_final_round
+
+      max_score = total_score.values.max
+      if max_score >= SCORE_THRESHOLD
+        puts "\n==========  Entering final round =========\n"
+        @is_final_round = true
+      end
     end
   end
 
-  puts "Continue for another round (y/n)"
-  option_selected = gets
-  if option_selected.chomp =='n'
-    puts "The End.. Calculating final score."
-    break
+  def print_total_score(total_score)
+    puts "\n=========== Score Board =============="
+    puts "Player \tScore"
+    @total_score.each do |player_id, score|
+      puts  "#{player_id}\t#{score}"
+    end
+    puts "\n"
+  end
+
+  def roll_dice_and_process(player_id, roll_count, total_score)
+    player_rolls = roll(roll_count)
+    remaining_elements , roll_score = get_score(player_rolls)
+    total_score[player_id] += roll_score
+    puts "Player #{player_id} rolls: #{player_rolls}"
+    puts "Score in this round: #{roll_score}"
+    [remaining_elements,roll_score]
   end
 end
 
-puts "Final Score"
-total_score.each do |key, score|
-  puts  "Player #{key} score: #{score}"
-end
+puts 'Enter number of players : '
+num_players = gets.chomp.to_i
+greeders_game = GreederDiceGame.new(num_players)
+greeders_game.play
