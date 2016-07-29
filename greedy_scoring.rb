@@ -74,24 +74,37 @@ class GreederDiceGame
     while true do
       (1..@num_players).each do |player_id|
         remaining_elements, roll_score = self.roll_dice_and_process player_id, DICE_THROW_SIZE, total_score
-        puts "Do you want to roll remaining #{remaining_elements} dice? (y/n)"
-        if gets.chomp =='y'
-          remaining_elements, roll_score = self.roll_dice_and_process player_id,remaining_elements,total_score
+
+        if roll_score <= 300 && @total_score[player_id] == roll_score
+          puts "Player #{player_id} score in this round is less than 300. And is not in the game yet"
+          ## Resetting total score
+          @total_score[player_id] = 0
+          next
         end
+
+
+        if remaining_elements > 0
+          puts "Do you want to roll remaining #{remaining_elements} dice? (y/n)"
+          if gets.chomp =='y'
+            remaining_elements, roll_score = self.roll_dice_and_process player_id,remaining_elements,total_score
+          end
+        end
+
         puts "\n"
       end
-      self.print_total_score total_score
+      self.print_total_score
       break if @is_final_round
 
-      max_score = total_score.values.max
+      max_score = @total_score.values.max
       if max_score >= SCORE_THRESHOLD
         puts "\n==========  Entering final round =========\n"
         @is_final_round = true
       end
     end
+    declare_winner
   end
 
-  def print_total_score(total_score)
+  def print_total_score
     puts "\n=========== Score Board =============="
     puts "Player \tScore"
     @total_score.each do |player_id, score|
@@ -100,12 +113,18 @@ class GreederDiceGame
     puts "\n"
   end
 
+  def declare_winner
+    max_score = @total_score.values.max
+    winner_player = @total_score.key(max_score)
+    puts  "Player #{winner_player} wins with #{max_score} points"
+  end
+
   def roll_dice_and_process(player_id, roll_count, total_score)
     player_rolls = roll(roll_count)
     remaining_elements , roll_score = get_score(player_rolls)
     total_score[player_id] += roll_score
     puts "Player #{player_id} rolls: #{player_rolls}"
-    puts "Score in this round: #{roll_score}"
+    puts "Score: #{roll_score}"
     [remaining_elements,roll_score]
   end
 end

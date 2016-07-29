@@ -30,9 +30,9 @@ class Rover
 
   def change_direction(direction)
     if direction == 'L'
-      @direction = (@direction - 1)%4
+      @direction = (@direction - 1) % 4
     elsif direction == 'R'
-      @direction = (@direction + 1)%4
+      @direction = (@direction + 1) % 4
     end
   end
 
@@ -53,15 +53,14 @@ end
 
 
 
-rover1 = Rover.new(1,2,'N')
-'LMLMLMLMM'.split('').each do |char|
-  rover1.apply char
-end
-puts rover1.get_pos
+MAP_SIZE_X,MAP_SIZE_Y = gets.chomp.split(" ").map(&:to_i)
 
-
-rover2 = Rover.new(3,3,'E')
-'MMRMMRMRRM'.split('').each do |char|
-  rover2.apply char
+2.times do |i|
+  pos_x, pos_y, direction = gets.chomp.split(" ")
+  actions = gets.chomp
+  rover = Rover.new(pos_x.to_i, pos_y.to_i, direction)
+  actions.split('').each do |char|
+    rover.apply char
+  end
+  puts rover.get_pos
 end
-puts rover2.get_pos
