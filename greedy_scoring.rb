@@ -129,7 +129,11 @@ class GreederDiceGame
   end
 end
 
-puts 'Enter number of players : '
-num_players = gets.chomp.to_i
-greeders_game = GreederDiceGame.new(num_players)
-greeders_game.play
+begin
+  puts 'Enter number of players : '
+  num_players = gets.chomp.to_i
+  greeders_game = GreederDiceGame.new(num_players)
+  greeders_game.play
+rescue Exception
+  puts 'Some error occurred. Please restart'
+end

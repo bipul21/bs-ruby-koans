@@ -6,7 +6,7 @@ key_server = KeyServer.new
 
 Thread.new do
   while true do
-    sleep 60
+    sleep 1
     key_server.cleanup
   end
 
@@ -14,7 +14,7 @@ end
 
 
 get '/' do
-  "ok"
+  'ok'
 end
 
 #E1 : There should be one endpoint to generate keys.
