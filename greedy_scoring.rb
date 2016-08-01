@@ -75,7 +75,7 @@ class GreederDiceGame
       (1..@num_players).each do |player_id|
         remaining_elements, roll_score = self.roll_dice_and_process player_id, DICE_THROW_SIZE, total_score
 
-        if roll_score <= 300 && @total_score[player_id] == roll_score
+        if roll_score < 300 && @total_score[player_id] == roll_score
           puts "Player #{player_id} score in this round is less than 300. And is not in the game yet"
           ## Resetting total score
           @total_score[player_id] = 0

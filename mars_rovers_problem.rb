@@ -1,8 +1,6 @@
 MAP_SIZE = 5
 
 DIRECTION_MAP = {:N => 0, :E => 1, :S => 2, :W => 3}
-MAP_SIZE_X = 5
-MAP_SIZE_Y = 5
 
 
 class Rover
@@ -39,11 +37,9 @@ class Rover
   def apply(action)
     if action ==  'L' || action == 'R'
       self.change_direction(action)
-    else
+    elsif action == 'M'
       self.move
     end
-    # puts "#{action}, #{@pos_x}, #{@pos_y}, #{DIRECTION_MAP.key(@direction)}"
-  #
   end
 
   def get_pos
@@ -53,14 +49,18 @@ end
 
 
 
-MAP_SIZE_X,MAP_SIZE_Y = gets.chomp.split(" ").map(&:to_i)
+MAP_SIZE_X,MAP_SIZE_Y = gets.chomp.split(' ').map(&:to_i)
 
-2.times do |i|
-  pos_x, pos_y, direction = gets.chomp.split(" ")
-  actions = gets.chomp
-  rover = Rover.new(pos_x.to_i, pos_y.to_i, direction)
-  actions.split('').each do |char|
-    rover.apply char
+while true do
+  begin
+    pos_x, pos_y, direction = gets.chomp.split(' ')
+    actions = gets.chomp
+    rover = Rover.new(pos_x.to_i, pos_y.to_i, direction)
+    actions.split('').each do |char|
+      rover.apply char
+    end
+    rover.get_pos
+  rescue Exception
+    break
   end
-  puts rover.get_pos
 end
