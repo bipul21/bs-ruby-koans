@@ -49,7 +49,11 @@ end
 
 
 
-MAP_SIZE_X,MAP_SIZE_Y = gets.chomp.split(' ').map(&:to_i)
+begin
+  MAP_SIZE_X,MAP_SIZE_Y = gets.chomp.split(' ').map(&:to_i)
+rescue Exception
+  puts 'Please provide Map sizes correctly'
+end
 
 while true do
   begin

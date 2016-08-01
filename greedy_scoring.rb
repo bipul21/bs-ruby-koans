@@ -134,6 +134,7 @@ begin
   num_players = gets.chomp.to_i
   greeders_game = GreederDiceGame.new(num_players)
   greeders_game.play
-rescue Exception
+rescue Exception => e
+  puts e
   puts 'Some error occurred. Please restart'
 end
