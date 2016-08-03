@@ -54,9 +54,14 @@ fs.stat(filename, function(err,stats){
                 var dataLength = changedFileStat.size - fileStat.size;
                 var buffer = Buffer.alloc(dataLength, 0, 'utf-8');
                 fs.read(fd, buffer, 0, dataLength, fileStat.size, function (err, bytesRead, data) {
-                    var clean_data = data.toString().replace("\n","<br>");
-                    cbuffer.push(clean_data);
-                    filesSocket.emit('line', clean_data);
+                    data.toString().replace(/^\s+|\s+$/g, " ").split("\n").forEach(function (dataLine) {
+                        var clean_data = dataLine.toString();
+                        if (clean_data[clean_data.length - 1]==" "){
+                            clean_data += "<br>";
+                        }
+                        cbuffer.push(clean_data);
+                        filesSocket.emit('line', clean_data);
+                    });
                 });
                 fileStat = changedFileStat;
             });
