@@ -31,23 +31,37 @@ var server = http.createServer(connectBuild).listen(8000);
  */
 var io = socketio.listen(server, {log: false});
 var filesSocket = io.of('/' + filesNamespace).on('connection', function (socket) {
+    if(cbuffer.size == 0){
+        var file_content = fs.readFileSync(filename).toString().split("\n");
+        file_content.slice(1).slice(-10).forEach(function(line){
+            cbuffer.push(line);
+        });
+    }
     cbuffer.toArray().forEach(function (line) {
         socket.emit('line', line);
     });
 
 });
 
-var fileStat = fs.statSync(filename);
-fs.watch(filename, function (event, f) {
-    var changedFileStat = fs.statSync(filename);
-    fs.open(filename, 'r', function(err, fd) {
-        var dataLength = changedFileStat.size - fileStat.size;
-        var buffer = Buffer.alloc(dataLength, 0, 'utf-8');
-        fs.read(fd, buffer, 0, dataLength, fileStat.size, function (err, bytesRead, data) {
-            cbuffer.push(sanitizer(data.toString()).xss());
-            filesSocket.emit('line', sanitizer(data.toString()).xss());
+var fileStat = null;
+fs.stat(filename, function(err,stats){
+    fileStat = stats;
+    fs.watch(filename, function (event, f) {
+        if ( fileStat == null ){
+            return
+        }
+        var changedFileStat = fs.statSync(filename);
+        fs.open(filename, 'r', function(err, fd) {
+            var dataLength = changedFileStat.size - fileStat.size;
+            var buffer = Buffer.alloc(dataLength, 0, 'utf-8');
+            fs.read(fd, buffer, 0, dataLength, fileStat.size, function (err, bytesRead, data) {
+                data.toString().split("\n").forEach(function (dataLine) {
+                    cbuffer.push(data.toString());
+                    filesSocket.emit('line', dataLine);
+                });
+            });
+            fileStat = changedFileStat;
         });
-        fileStat = fs.statSync(filename);
     });
 });
 
