@@ -5,10 +5,11 @@ var crypto         = require('crypto');
 var path           = require('path');
 var sanitizer      = require('validator').sanitize;
 var socketio       = require('socket.io');
-var Tail           = require('tail').Tail;
 var connectBuilder = require('./lib/connect_builder');
 var program        = require('./lib/options_parser');
 var serverBuilder  = require('./lib/server_builder');
+var fs = require('fs');
+var CBuffer = require('CBuffer');
 
 program.parse(process.argv);
 if (program.args.length === 0) {
@@ -42,18 +43,29 @@ var server = builder
  */
 var io = socketio.listen(server, {log: false});
 
-
-var tailer = new Tail(files);
+var cbuffer = new CBuffer(10);
 
 var filesSocket = io.of('/' + filesNamespace).on('connection', function (socket) {
-    console.log("File Socket Connected !!");
+    cbuffer.toArray().forEach(function (line) {
+        socket.emit('line', line);
+    });
+
 });
 
-
-tailer.on('line', function (line) {
-    filesSocket.emit('line', sanitizer(line).xss());
+var filename = files;
+var fileStat = fs.statSync(filename);
+fs.watch(filename, function (event, f) {
+    var changedFileStat = fs.statSync(filename);
+    fs.open(filename, 'r', function(err, fd) {
+        var dataLength = changedFileStat.size - fileStat.size;
+        var buffer = Buffer.alloc(dataLength, 0, 'utf-8');
+        fs.read(fd, buffer, 0, dataLength, fileStat.size, function (err, bytesRead, data) {
+            cbuffer.push(sanitizer(data.toString()).xss());
+            filesSocket.emit('line', sanitizer(data.toString()).xss());
+        });
+        fileStat = fs.statSync(filename);
+    });
 });
-
 
 var cleanExit = function () { process.exit(); };
 process.on('SIGINT', cleanExit);
