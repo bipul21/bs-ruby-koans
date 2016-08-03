@@ -97,7 +97,7 @@ window.App = (function (window, document) {
             div.className = 'line';
 
             div.appendChild(p);
-            _logContainer.appendChild(div);
+            _logContainer.innerHTML += data;
 
             if (_logContainer.children.length > _linesLimit) {
                 _logContainer.removeChild(_logContainer.children[0]);

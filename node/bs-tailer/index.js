@@ -28,7 +28,8 @@ var server = http.createServer(connectBuild).listen(8000);
 
 if(cbuffer.size == 0){
     var file_content = fs.readFileSync(filename).toString().trim().replace(/^\s+|\s+$/g, "").split("\n");
-    file_content.slice(1).slice(-10).forEach(function(line){
+    // console.log(file_content.slice(0).slice(-10));
+    file_content.slice(0).slice(-10).forEach(function(line){
         cbuffer.push(line);
     });
 }
@@ -39,7 +40,7 @@ if(cbuffer.size == 0){
 var io = socketio.listen(server, {log: false});
 var filesSocket = io.of('/' + filesNamespace).on('connection', function (socket) {
     cbuffer.toArray().forEach(function (line) {
-        socket.emit('line', line);
+        socket.emit('line', line + "<br>");
     });
 
 });
@@ -53,10 +54,9 @@ fs.stat(filename, function(err,stats){
                 var dataLength = changedFileStat.size - fileStat.size;
                 var buffer = Buffer.alloc(dataLength, 0, 'utf-8');
                 fs.read(fd, buffer, 0, dataLength, fileStat.size, function (err, bytesRead, data) {
-                    data.toString().replace(/^\s+|\s+$/g, "").split("\n").forEach(function (dataLine) {
-                        cbuffer.push(data.toString());
-                        filesSocket.emit('line', dataLine);
-                    });
+                    var clean_data = data.toString().replace("\n","<br>");
+                    cbuffer.push(clean_data);
+                    filesSocket.emit('line', clean_data);
                 });
                 fileStat = changedFileStat;
             });
