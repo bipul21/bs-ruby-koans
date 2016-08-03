@@ -5,7 +5,7 @@ var crypto         = require('crypto');
 var path           = require('path');
 var sanitizer      = require('validator').sanitize;
 var socketio       = require('socket.io');
-var tail           = require('./lib/tail');
+var Tail           = require('tail').Tail;
 var connectBuilder = require('./lib/connect_builder');
 var program        = require('./lib/options_parser');
 var serverBuilder  = require('./lib/server_builder');
@@ -33,7 +33,7 @@ var builder = serverBuilder();
 
 var server = builder
     .use(appBuilder.build())
-    .port(program.port)
+    .port(8000)
     .host(program.host)
     .build();
 
@@ -43,14 +43,10 @@ var server = builder
 var io = socketio.listen(server, {log: false});
 
 
-var tailer = tail(program.args, {buffer: program.number});
+var tailer = new Tail(files);
 
 var filesSocket = io.of('/' + filesNamespace).on('connection', function (socket) {
-    socket.emit('options:lines', program.lines);
-
-    tailer.getBuffer().forEach(function (line) {
-        socket.emit('line', line);
-    });
+    console.log("File Socket Connected !!");
 });
 
 
@@ -62,4 +58,3 @@ tailer.on('line', function (line) {
 var cleanExit = function () { process.exit(); };
 process.on('SIGINT', cleanExit);
 process.on('SIGTERM', cleanExit);
-
