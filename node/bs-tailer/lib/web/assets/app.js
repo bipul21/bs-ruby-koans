@@ -92,8 +92,6 @@ window.App = (function (window, document) {
             p.className = 'inner-line';
 
             // convert ansi color codes to html && escape HTML tags
-            data = ansi_up.escape_for_html(data); // eslint-disable-line
-            data = ansi_up.ansi_to_html(data); // eslint-disable-line
             p.innerHTML = data;
 
             div.className = 'line';
